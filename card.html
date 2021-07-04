@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script src="https://unpkg.com/vue@next"></script>
+    <style>
+      .card-container {
+        font-family: arial;
+        width: 270px;
+        height: 340px;
+        border: 1px solid #666;
+        border-radius: 15px;
+        box-shadow: 0.2em 0.2em 0.5em #333;
+      }
+
+      .card-cost {
+        width: 50px;
+        height: 40px;
+        background: url(https://tm.alrusdi.ru/assets/resources/megacredit.png);
+        background-size: 50px 50px;
+        display: inline-block;
+        text-align: center;
+        font-size: 27px;
+        font-weight: bold;
+        padding: 10px 0 0 0;
+      }
+
+      .card-tags {
+        width: 215px;
+        height: 50px;
+        display: inline-block;
+        text-align: right;
+        vertical-align: top;
+      }
+
+      .card-tag {
+        width: 50px;
+        height: 50px;
+        display: inline-block;
+        margin-left: 10px;
+      }
+
+      .card-tag--SPT {
+        background: url("https://tm.alrusdi.ru/assets/tags/space.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--ERT {
+        background: url("https://tm.alrusdi.ru/assets/tags/earth.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--EVT {
+        background: url("https://tm.alrusdi.ru/assets/tags/event.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--SCT {
+        background: url("https://tm.alrusdi.ru/assets/tags/science.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--BDT {
+        background: url("https://tm.alrusdi.ru/assets/tags/building.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--ENT {
+        background: url("https://tm.alrusdi.ru/assets/tags/power.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--PTT {
+        background: url("https://tm.alrusdi.ru/assets/tags/plant.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--ANT {
+        background: url("https://tm.alrusdi.ru/assets/tags/animal.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--JPT {
+        background: url("https://tm.alrusdi.ru/assets/tags/jovian.png");
+        background-size: 50px 50px;
+      }
+
+      .card-tag--MBT {
+        background: url("https://tm.alrusdi.ru/assets/tags/microbe.png");
+        background-size: 50px 50px;
+      }
+
+      .card-inline-tag {
+        width: 15px;
+        height: 15px;
+        background-size: 15px 15px;
+        display: inline-block;
+      }
+
+      .card-contents {
+        margin-top: 5px;
+        min-height: 250px;
+      }
+
+
+      .card-title {
+        padding: 10px 0;
+        font-size: 17px;
+        text-align: center;
+        font-weight: bold;
+      }
+
+      .card-title--active {
+        background: #49b3d6;
+      }
+
+      .card-title--event {
+        background: orange;
+      }
+
+      .card-title--automated {
+        background: lightgreen;
+      }
+
+      .card-requirement {
+        background: #fdd;
+        padding: 10px;
+        text-align: center;
+        margin-bottom: 10px;
+      }
+
+      .card-effect {
+        background: #bfe2bf;
+        padding: 10px;
+      }
+
+      .card-instant {
+        background: #ffffb6;
+        padding: 10px;
+      }
+
+      .card-action {
+        background: #caedf9;
+        padding: 10px;
+      }
+
+      .card-vp-container {
+        text-align: right;
+        margin-right: 5px;
+      }
+      .card-vp {
+        display: inline-block;
+        text-align: right;
+        font-size: 12px;
+        font-weight: bold;
+        height: 27px;
+        line-height: 26px;
+        padding: 9px;
+        background: brown;
+        color: white;
+      }
+
+      .card-number-container {
+        text-align: right;
+
+      }
+
+      .card-number-text {
+        background: #ccc;
+        padding: 5px 14px;
+        border-radius: 15px;
+        display: inline-block;
+        margin-right: 5px;
+        font-weight: bold;
+        color: #585757;
+      }
+
+      .card-vp:before {
+        position: absolute;
+        width: 30px;
+        height: 33px;
+        content: "VP:";
+        text-align: center;
+        padding: 5px;
+        margin: -9px 0 0 -49px;
+        border: 1px solid brown;
+        color: brown;
+        line-height: 31px;
+      }
+
+      .card-vspace {
+        margin-bottom: 10px;
+      }
+
+    </style>
+  </head>
+  <body>
+    
+    <div id="vue-app">
+      <div>
+        <div style="margin: 20px;">
+          <button v-on:click="update()">Update card</button> 
+          Instant refresh: <input type="checkbox" v-model="instantRefresh"></input>
+        </div>
+      </div>
+
+      <div class="card-container">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-cost">{{ cost }}</div>
+            <div class="card-tags">
+              <div class="card-tag" :class="'card-tag--'+tag" v-for="tag in tags"></div>
+            </div>  
+          </div>
+
+          <div class="card-contents">
+            <div class="card-title card-vspace" :class="'card-title--' + type">{{ title }}</div>
+
+            <div class="card-requirement card-vspace" v-if="requirement" v-html=renderText(requirement)></div>
+
+            <div class="card-instants card-vspace" v-if="instants">
+              <div class="card-instant" v-for="instant in instants" v-html="renderText(instant, '<b>Immediately:</b> ')"></div>
+            </div>
+
+            <div class="card-effects card-vspace" v-if="effects">
+              <div class="card-effect" v-for="effect in effects" v-html="renderText(effect, '<b>Effect:</b> ')"></div>
+            </div>
+
+            <div class="card-actions card-vspace" v-if="actions">
+              <div class="card-action" v-for="action in actions" v-html="renderText(action, '<b>Action:</b> ')"></div>
+            </div>
+
+            <div class="card-vp-container card-vspace" v-if="vp">
+              <div class="card-vp" v-html="renderText(vp)"></div>
+            </div>
+          </div>
+
+          <div class="card-footer">
+            <div class="card-number-container">
+              <div class="card-number-text">{{ number }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-json">
+        <pre v-html="json"></pre>
+      </div>
+    </div>
+    <script>
+      const Counter = {
+        data() {
+          return {
+            instantRefresh: false,
+            number: "",
+            type: "",
+            cost: "",
+            title: "",
+            tags: [],
+            requirement: "",
+            instants: [],
+            effects: [],
+            actions: [],
+            vp: "",
+            json: ""
+          }
+        },
+        mounted() {
+          this.update();
+        },
+        methods: {
+          update() {
+            var app = this;
+            var onSuccess = (data) => {
+              app.number = data.number;
+              app.type = data.type
+              app.title = data.title;
+              app.cost = data.cost;
+              app.tags = data.tags;
+              app.requirement = data.requirement;
+              app.instants = data.instants;
+              app.effects = data.effects;
+              app.actions = data.actions;
+              app.vp = data.vp;
+              app.json = JSON.stringify(data, null, '  ');
+
+              if (app.instantRefresh) {
+                setTimeout(() => {app.update()}, 1000);
+              }
+            }
+            google.script.run.withSuccessHandler(onSuccess).getCurrentCardData();
+          },
+          renderText(text, suffix) {
+            if ( ! suffix) {
+              suffix = "";
+            }
+            text = text.replace(/(SCT|EVT|SPT|BDT|ENT|ERT|PTT|ANT|MBT|JPT)/g, "<i class='card-inline-tag card-tag--$1'></i>")
+            return suffix + text;
+          }
+        }
+      }
+
+      Vue.createApp(Counter).mount('#vue-app')
+    </script>
+  </body>
+</html>
